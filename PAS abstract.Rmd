@@ -1,0 +1,126 @@
+---
+title: "EMERALD study - changes in renal markers"
+author: "Laura Pyle"
+date: "November 26, 2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(Hmisc)
+
+alldata <- read.csv("H:\\Endocrinology\\Tommerdahl\\EMERALD analysis\\EMERALD updated renal effects spreadsheet.csv",na.strings=c(" ","","."))
+alldata <- alldata[!is.na(alldata$Subject.ID),]
+
+# calculate eGFR by Zapatelli
+alldata$BL.Zap <- (507.76*exp(0.003*(alldata$Screen.Height)))/((alldata$BL.Cystatin^0.635)*((alldata$BL.Creatinine*88.4)^0.547))
+alldata$FL.Zap <- (507.76*exp(0.003*(alldata$Screen.Height)))/((alldata$FL.Cystatin^0.635)*((alldata$FL.Creatinine*88.4)^0.547))
+
+# calculate FAS equation
+alldata$age <- floor(alldata$Age.at.screen)
+alldata$qcr[alldata$age==10] <- 0.51 
+alldata$qcr[alldata$age==11] <- 0.53 
+alldata$qcr[alldata$age==12] <- 0.57
+alldata$qcr[alldata$age==13] <- 0.59
+alldata$qcr[alldata$age==14] <- 0.61
+# in EMERALD, 0=male, 1=female
+# females
+alldata$qcr[alldata$age==15 & alldata$Sex==1] <- 0.64
+# males
+alldata$qcr[alldata$age==15 & alldata$Sex==0] <- 0.72
+# females
+alldata$qcr[alldata$age==16 & alldata$Sex==1] <- 0.67
+# males
+alldata$qcr[alldata$age==16 & alldata$Sex==0] <- 0.78
+# females
+alldata$qcr[alldata$age==17 & alldata$Sex==1] <- 0.69
+# males
+alldata$qcr[alldata$age==17 & alldata$Sex==0] <- 0.82
+# females
+alldata$qcr[alldata$age==18 & alldata$Sex==1] <- 0.69
+# males
+alldata$qcr[alldata$age==18 & alldata$Sex==0] <- 0.85
+# females
+alldata$qcr[alldata$age==19 & alldata$Sex==1] <- 0.70
+# males
+alldata$qcr[alldata$age==19 & alldata$Sex==0] <- 0.88
+# females
+alldata$qcr[alldata$age>=20 & alldata$Sex==1] <- 0.70
+# males
+alldata$qcr[alldata$age>=20 & alldata$Sex==0] <- 0.90
+alldata$f1BL <- alldata$BL.Creatinine/alldata$qcr
+alldata$f2BL <- 1-0.5
+alldata$f3BL <- alldata$BL.Creatinine/0.82
+alldata$BL.fas <- 107.3 / ((0.5*alldata$f1BL) + (alldata$f2BL*alldata$f3BL))
+alldata$f1FL <- alldata$FL.Creatinine/alldata$qcr
+alldata$f2FL <- 1-0.5
+alldata$f3FL <- alldata$FL.Creatinine/0.82
+alldata$FL.fas <- 107.3 / ((0.5*alldata$f1FL) + (alldata$f2FL*alldata$f3FL))
+
+# hyperfiltration - defined as Zapp >= 126.8
+alldata$BL.hyperfilt[alldata$BL.Zap>=126.8] <- 1
+alldata$BL.hyperfilt[alldata$BL.Zap<126.8] <- 0
+alldata$FL.hyperfilt[alldata$FL.Zap>=126.8] <- 1
+alldata$FL.hyperfilt[alldata$FL.Zap<126.8] <- 0
+
+# calculate deltas
+alldata$d.AST <- alldata$FL.AST - alldata$BL.AST
+alldata$d.ALT <- alldata$FL.ALT - alldata$BLALT
+alldata$d.Plat <- alldata$FL.Platelet.Count.Final - alldata$BL.Platelet.Count
+alldata$d.CRP <- alldata$FL.hs_CRP.Final - alldata$BL.hs_CRP
+alldata$d.MAB_CRE <- alldata$FL.mcg.MAB_mgCRE.Final - alldata$BL.mcg.MAB_mgCRE
+alldata$d.MAB <- alldata$FL.MAB.ur.mcg_mL.Final - alldata$BL.MAB.ur.mcg_mL
+alldata$d.adipo <- alldata$FL.Adiponectin.Final - alldata$BL.Adiponectin.baseline
+alldata$d.BMC <- alldata$FL.BMC - alldata$BL.BMC
+alldata$d.lept <- alldata$FL.Leptin.Final - alldata$BL.Leptin
+alldata$d.lean_per <- alldata$FL.Lean_per - alldata$BL.Lean_per
+alldata$d.BMD <- alldata$FL.BMD - alldata$BL.BMD
+alldata$d.copeptin <- alldata$FL.Copeptin - alldata$BL.Copeptin
+alldata$d.VO2lean <- alldata$FL.VO2.lean.kg - alldata$BL.VO2.lean.kg
+alldata$d.VO2 <- alldata$FL.VO2.Max.mL.kg.min. - alldata$BL.VO2.Max.mL.kg.min.
+alldata$d.Glucose.corrected.M.I.Lean.80 <- alldata$FL.Glucose.corrected.M.I.Lean.80.Final - alldata$BL.Glucose.corrected.M.I.Lean.80
+alldata$d.fat_per <- alldata$FL.Fat_per - alldata$BL.Fat_per
+alldata$d.cystatin <- alldata$FL.Cystatin.Final - alldata$BL.Cystatin
+alldata$d.wbc <- alldata$FL.WBC.Final - alldata$BL.WBC
+alldata$d.fat <- alldata$FL.Fat_Mass - alldata$BL.Fat_Mass
+alldata$d.lean <- alldata$FL.Lean_Mass - alldata$BL.Lean_Mass
+alldata$d.mg.kglean..min.80..gluc.corrected <- alldata$FL.mg.kglean..min.80..gluc.corrected.final - alldata$BL.mg.kglean..min.80..gluc.corrected
+alldata$d.Glucose.corrected.M.I <- alldata$FL.Glucose.corrected.M.I.80.Final - alldata$BL.Glucose.corrected.M.I.80
+alldata$d.mg.kg.min.80..gluc.corrected <- alldata$FL.mg.kg.min.80..gluc.corrected.final.. - alldata$BL.mg.kg.min.80..gluc.corrected
+alldata$d.creatinine <- alldata$FL.Creatinine.Final - alldata$BL.Creatinine
+alldata$d.creat.Ur.mg_dl <- alldata$FL.Creat.Ur.mg_dL.Final - alldata$BL.Creat.Ur.mg_dL
+
+# label variables
+label(alldata$d.AST)="Change in AST"
+label(alldata$d.ALT)="Change in ALT"
+label(alldata$d.Plat)="Change in Platelets"
+label(alldata$d.CRP)="Change in hs-CRP"
+label(alldata$d.MAB_CRE)="Change in MAB:CRE (mcg/mg)"
+label(alldata$d.MAB)="Change in MAB (mcg/mL)"
+label(alldata$d.adipo)="Change in adiponectin"
+label(alldata$d.BMC)="Change in BMC"
+label(alldata$d.lept)="Change in leptin"
+label(alldata$d.lean_per)="Change in Lean %"
+label(alldata$d.BMD)="Change in BMD"
+label(alldata$d.copeptin)="Change in Copeptin"
+label(alldata$d.VO2lean)="Change in VO2 max/lean kg"
+label(alldata$d.VO2)="Change in VO2 max"
+label(alldata$d.Glucose.corrected.M.I.Lean.80)="Change in Glucose corrected MI Lean 80"
+label(alldata$d.fat_per)="Change in Fat %"
+label(alldata$d.cystatin)="Change in Cystatin"
+label(alldata$d.wbc)="Change in WBC"
+label(alldata$d.fat)="Change in fat mass"
+label(alldata$d.lean)="Change in lean mass"
+label(alldata$d.mg.kglean..min.80..gluc.corrected)="Change in mg kglean min 80 gluc corrected"
+label(alldata$d.Glucose.corrected.M.I)="Change in glucose corrected MI"
+label(alldata$d.mg.kg.min.80..gluc.corrected)="Change in mg kg min 80 gluc corrected"
+label(alldata$d.creatinine)="Change in creatinine"
+label(alldata$d.creat.Ur.mg_dl)="Change in creatinine ur mg/dL"
+
+# table of changes in all variables
+
+# eventually want to do analysis of post adjusted for pre
+
+```
+
