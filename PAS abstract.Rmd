@@ -9,6 +9,10 @@ output: word_document
 knitr::opts_chunk$set(echo = FALSE)
 
 library(Hmisc)
+library(knitr)
+
+source("C:\\Users\\pylell\\Documents\\GitHub\\General-code\\temp_table1.r")
+source("C:\\Users\\pylell\\Documents\\GitHub\\General-code\\01_functions.r")
 
 alldata <- read.csv("H:\\Endocrinology\\Tommerdahl\\EMERALD analysis\\EMERALD updated renal effects spreadsheet.csv",na.strings=c(" ","","."))
 alldata <- alldata[!is.na(alldata$Subject.ID),]
@@ -51,7 +55,7 @@ alldata$qcr[alldata$age>=20 & alldata$Sex==1] <- 0.70
 alldata$qcr[alldata$age>=20 & alldata$Sex==0] <- 0.90
 alldata$f1BL <- alldata$BL.Creatinine/alldata$qcr
 alldata$f2BL <- 1-0.5
-alldata$f3BL <- alldata$BL.Creatinine/0.82
+alldata$f3BL <- alldata$BL.Cystatin/0.82
 alldata$BL.fas <- 107.3 / ((0.5*alldata$f1BL) + (alldata$f2BL*alldata$f3BL))
 alldata$f1FL <- alldata$FL.Creatinine/alldata$qcr
 alldata$f2FL <- 1-0.5
@@ -90,6 +94,15 @@ alldata$d.Glucose.corrected.M.I <- alldata$FL.Glucose.corrected.M.I.80.Final - a
 alldata$d.mg.kg.min.80..gluc.corrected <- alldata$FL.mg.kg.min.80..gluc.corrected.final.. - alldata$BL.mg.kg.min.80..gluc.corrected
 alldata$d.creatinine <- alldata$FL.Creatinine.Final - alldata$BL.Creatinine
 alldata$d.creat.Ur.mg_dl <- alldata$FL.Creat.Ur.mg_dL.Final - alldata$BL.Creat.Ur.mg_dL
+alldata$d.Zap <- alldata$FL.Zap - alldata$BL.Zap
+alldata$d.fas <- alldata$FL.fas - alldata$BL.fas
+
+# determine Tanner stage
+alldata$tanner <- as.factor(ifelse(alldata$Sex==1,alldata$Breasts...Tanner,alldata$Tanner...Testes))
+
+# create factors
+alldata$Ethnicity.factor <- as.factor(alldata$Ethnicity)
+alldata$Sex <- as.factor(alldata$Sex)
 
 # label variables
 label(alldata$d.AST)="Change in AST"
@@ -117,10 +130,85 @@ label(alldata$d.Glucose.corrected.M.I)="Change in glucose corrected MI"
 label(alldata$d.mg.kg.min.80..gluc.corrected)="Change in mg kg min 80 gluc corrected"
 label(alldata$d.creatinine)="Change in creatinine"
 label(alldata$d.creat.Ur.mg_dl)="Change in creatinine ur mg/dL"
+label(alldata$d.Zap)="Change in eGFR by Zapatelli"
+label(alldata$d.fas)="Change in eGFR by FAS"
+label(alldata$Sex)="Sex"
+label(alldata$Age.at.screen)="Age at screening"
+label(alldata$Diabetes.Duration)="Diabetes duration"
+label(alldata$BMI)="BMI"
+label(alldata$BMI.Percentile)="BMI percentile"
+label(alldata$Waist.Circumference..cm.)="Waist circumference"
+label(alldata$Waist.to.Hip.Ratio)="Waist to hip ratio"
+label(alldata$SBP.1800)="SBP"
+label(alldata$DBP.1800)="DBP"
+label(alldata$Ethnicity.factor)="Ethnicity"
+label(alldata$tanner)="Tanner stage"
+
+
+# Table 1
+tab1 <- final_table(alldata,c("Sex","Age.at.screen","Diabetes.Duration","BMI","BMI.Percentile","Waist.Circumference..cm.","Waist.to.Hip.Ratio",
+                              "SBP.1800","DBP.1800","Ethnicity.factor","tanner"),group=as.factor(alldata$Randomization),margin=2,single=0,ron=2)
 
 # table of changes in all variables
+tab2 <- final_table(alldata,c('d.AST',"d.ALT","d.Plat","d.CRP","d.MAB_CRE","d.MAB","d.adipo","d.BMC","d.lept","d.lean_per","d.BMD","d.copeptin","d.VO2lean",
+                              "d.VO2","d.Glucose.corrected.M.I.Lean.80","d.fat_per","d.cystatin","d.wbc","d.fat","d.lean","d.mg.kglean..min.80..gluc.corrected",
+                              "d.Glucose.corrected.M.I","d.mg.kg.min.80..gluc.corrected","d.creatinine","d.creat.Ur.mg_dl","d.Zap","d.fas"),
+                    group=as.factor(alldata$Randomization),margin=2,single=0,ron=2)
 
 # eventually want to do analysis of post adjusted for pre
+# need to  modify below for all variables
+summary_tab <- NULL
+a <- lm(data=alldata, FL.AST ~ Randomization + BL.AST)
+amod <- mod_tab(a)
+amod <- amod[amod$Predictor=="Randomization",]
+amod$Outcome <- "FL.AST"
+amod <- as.data.frame(amod)
+amod <- amod[,c(4,1,2,3)]
+summary_tab <- rbind(summary_tab,amod)
+
+
+# correlation of insulin sensitivity to renal function at baseline
+# ++++++++++++++++++++++++++++
+# flattenCorrMatrix
+# ++++++++++++++++++++++++++++
+# cormat : matrix of the correlation coefficients
+# pmat : matrix of the correlation p-values
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+    )
+}
+corr_ins <- rcorr(as.matrix(alldata[, c("BL.Glucose.corrected.M.I.Lean.80","BL.mg.kglean..min.80..gluc.corrected",
+                                        "BL.Glucose.corrected.M.I.80","BL.mg.kg.min.80..gluc.corrected","BL.Cystatin","BL.Creatinine",
+                                        "BL.Creat.Ur.mg_dL","BL.Zap","BL.fas","BL.MAB.ur.mcg_mL","BL.mcg.MAB_mgCRE"
+                                        )])
+                  ,type = "pearson")
+corr_ins <- flattenCorrMatrix(corr_ins$r, corr_ins$P)
+
 
 ```
+# Background
 
+
+# Methods
+
+# Results
+
+```{r, results='asis',tidy=TRUE, echo=FALSE}
+kable(tab1,caption="Table 1.  Descriptive statistics by treatment group.")
+```
+\
+
+```{r, results='asis',tidy=TRUE, echo=FALSE}
+kable(tab2,caption="Table 2.  Changes in outcomes by treatment group.")
+```
+\
+
+```{r, results='asis',tidy=TRUE, echo=FALSE}
+kable(corr_ins,caption="Table 3.  Correlations between insulin sensitivity and renal markers at baseline.")
+```
+\
