@@ -21,7 +21,7 @@ alldata <- alldata[!is.na(alldata$Subject.ID),]
 alldata$BL.Zap <- (507.76*exp(0.003*(alldata$Screen.Height)))/((alldata$BL.Cystatin^0.635)*((alldata$BL.Creatinine*88.4)^0.547))
 alldata$FL.Zap <- (507.76*exp(0.003*(alldata$Screen.Height)))/((alldata$FL.Cystatin^0.635)*((alldata$FL.Creatinine*88.4)^0.547))
 
-# calculate FAS equation
+# calculate FAS equation using combined creatinine and cystatin
 alldata$age <- floor(alldata$Age.at.screen)
 alldata$qcr[alldata$age==10] <- 0.51 
 alldata$qcr[alldata$age==11] <- 0.53 
@@ -67,6 +67,8 @@ alldata$BL.hyperfilt[alldata$BL.Zap>=126.8] <- 1
 alldata$BL.hyperfilt[alldata$BL.Zap<126.8] <- 0
 alldata$FL.hyperfilt[alldata$FL.Zap>=126.8] <- 1
 alldata$FL.hyperfilt[alldata$FL.Zap<126.8] <- 0
+
+# calculate FAS by serum creatinine
 
 # calculate deltas
 alldata$d.AST <- alldata$FL.AST - alldata$BL.AST
