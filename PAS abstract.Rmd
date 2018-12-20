@@ -101,7 +101,7 @@ alldata$d.creat.Ur.mg_dl <- alldata$FL.Creat.Ur.mg_dL.Final - alldata$BL.Creat.U
 alldata$d.Zap <- alldata$FL.Zap - alldata$BL.Zap
 alldata$d.fas <- alldata$FL.fas - alldata$BL.fas
 alldata$d.fas_cr <- alldata$FL.fas_cr - alldata$BL.fas_cr
-
+ 
 # determine Tanner stage
 alldata$tanner <- as.factor(ifelse(alldata$Sex==1,alldata$Breasts...Tanner,alldata$Tanner...Testes))
 
@@ -170,10 +170,11 @@ row.names(tab2b) <- c("Normofiltration baseline","Hyperfiltration baseline")
 colnames(tab2b) <- c("Normofiltration followup","Hyperfiltration followup")
 tab2bp <- mcnemar.test(tab2b)$p.value
 
-# compare post adjusted for pre
+# was post adjusted for pre
+# now going to do change adjusted for pre
 summary_tab <- NULL
-BLadj <- function(BLVar,FLVar,label){
-  a <- lm(data=alldata, FLVar ~ Randomization + BLVar)
+BLadj <- function(BLVar,dVar,label){
+  a <- lm(data=alldata, dVar ~ Randomization + BLVar)
   amod <- mod_tab(a)
   amod <- amod[amod$Predictor=="Randomization",]
   amod$Outcome <- label
@@ -182,39 +183,39 @@ BLadj <- function(BLVar,FLVar,label){
   summary_tab <- rbind(summary_tab,amod)
   return(summary_tab)
 }
-summary_tab <- BLadj(alldata$BL.AST,alldata$FL.AST,"AST")
-summary_tab <- BLadj(alldata$BLALT,alldata$FL.ALT,"ALT")
-summary_tab <-BLadj(alldata$BL.Platelet.Count,alldata$FL.Platelet.Count.Final,"Platelets")
-summary_tab <-BLadj(alldata$BL.hs_CRP,alldata$FL.hs_CRP.Final,"CRP")
-summary_tab <-BLadj(alldata$BL.mcg.MAB_mgCRE,alldata$FL.mcg.MAB_mgCRE.Final,"MAB:CRE")
-summary_tab <-BLadj(alldata$BL.MAB.ur.mcg_mL,alldata$FL.MAB.ur.mcg_mL.Final,"MAB")
-summary_tab <-BLadj(alldata$BL.Adiponectin.baseline,alldata$FL.Adiponectin.Final,"Adiponectin")
-summary_tab <-BLadj(alldata$BL.BMC,alldata$FL.BMC,"BMC")
-summary_tab <-BLadj(alldata$BL.Leptin,alldata$FL.Leptin.Final,"Leptin")
-summary_tab <-BLadj(alldata$BL.Lean_per,alldata$FL.Lean_per,"Lean %")
-summary_tab <-BLadj(alldata$BL.BMD,alldata$FL.BMD,"BMD")
-summary_tab <-BLadj(alldata$BL.Copeptin,alldata$FL.Copeptin,"Copeptin")
-summary_tab <-BLadj(alldata$BL.VO2.lean.kg,alldata$FL.VO2.lean.kg,"VO2 max/lean kg")
-summary_tab <-BLadj(alldata$BL.VO2.Max.mL.kg.min.,alldata$FL.VO2.Max.mL.kg.min.,"VO2 max")
-summary_tab <-BLadj(alldata$BL.Glucose.corrected.M.I.Lean.80,alldata$FL.Glucose.corrected.M.I.Lean.80.Final,"Glucose corrected M/I Lean 80")
-summary_tab <-BLadj(alldata$BL.Fat_per,alldata$FL.Fat_per,"% Fat")
-summary_tab <-BLadj(alldata$BL.Cystatin,alldata$FL.Cystatin.Final,"Cystatin")
-summary_tab <-BLadj(alldata$BL.WBC,alldata$FL.WBC.Final,"WBC")
-summary_tab <-BLadj(alldata$BL.Fat_Mass,alldata$FL.Fat_Mass,"Fat mass")
-summary_tab <-BLadj(alldata$BL.Lean_Mass,alldata$FL.Lean_Mass,"Lean mass")
-summary_tab <-BLadj(alldata$BL.mg.kglean..min.80..gluc.corrected,alldata$FL.mg.kglean..min.80..gluc.corrected.final,"Mg Kg lean 80 glucose corrected")
-summary_tab <-BLadj(alldata$BL.Glucose.corrected.M.I.80,alldata$FL.Glucose.corrected.M.I.80.Final,"Glucose corrected M/I 80")
-summary_tab <-BLadj(alldata$BL.mg.kg.min.80..gluc.corrected,alldata$FL.mg.kg.min.80..gluc.corrected.final..,"Mg kg min 80 glucose corrected")
-summary_tab <-BLadj(alldata$BL.Creatinine,alldata$FL.Creatinine.Final,"Creatinine")
-summary_tab <-BLadj(alldata$BL.Creat.Ur.mg_dL,alldata$FL.Creat.Ur.mg_dL.Final,"Creatinine Ur mg/dL")
-summary_tab <-BLadj(alldata$BL.Zap,alldata$FL.Zap,"eGFR by Zap")
-summary_tab <-BLadj(alldata$BL.fas,alldata$FL.fas,"eGFR by FAS")
-summary_tab <-BLadj(alldata$BL.fas,alldata$FL.fas_cr,"eGFR by FAS-Cr")
+summary_tab <- BLadj(alldata$BL.AST,alldata$d.AST,"AST")
+summary_tab <- BLadj(alldata$BLALT,alldata$d.ALT,"ALT")
+summary_tab <-BLadj(alldata$BL.Platelet.Count,alldata$d.Plat,"Platelets")
+summary_tab <-BLadj(alldata$BL.hs_CRP,alldata$d.CRP,"CRP")
+summary_tab <-BLadj(alldata$BL.mcg.MAB_mgCRE,alldata$d.MAB_CRE,"MAB:CRE")
+summary_tab <-BLadj(alldata$BL.MAB.ur.mcg_mL,alldata$d.MAB,"MAB")
+summary_tab <-BLadj(alldata$BL.Adiponectin.baseline,alldata$d.adipo,"Adiponectin")
+summary_tab <-BLadj(alldata$BL.BMC,alldata$d.BMC,"BMC")
+summary_tab <-BLadj(alldata$BL.Leptin,alldata$d.lept,"Leptin")
+summary_tab <-BLadj(alldata$BL.Lean_per,alldata$d.lean_per,"Lean %")
+summary_tab <-BLadj(alldata$BL.BMD,alldata$d.BMD,"BMD")
+summary_tab <-BLadj(alldata$BL.Copeptin,alldata$d.copeptin,"Copeptin")
+summary_tab <-BLadj(alldata$BL.VO2.lean.kg,alldata$d.VO2lean,"VO2 max/lean kg")
+summary_tab <-BLadj(alldata$BL.VO2.Max.mL.kg.min.,alldata$d.VO2,"VO2 max")
+summary_tab <-BLadj(alldata$BL.Glucose.corrected.M.I.Lean.80,alldata$d.Glucose.corrected.M.I.Lean.80,"Glucose corrected M/I Lean 80")
+summary_tab <-BLadj(alldata$BL.Fat_per,alldata$d.fat_per,"% Fat")
+summary_tab <-BLadj(alldata$BL.Cystatin,alldata$d.cystatin,"Cystatin")
+summary_tab <-BLadj(alldata$BL.WBC,alldata$d.wbc,"WBC")
+summary_tab <-BLadj(alldata$BL.Fat_Mass,alldata$d.fat,"Fat mass")
+summary_tab <-BLadj(alldata$BL.Lean_Mass,alldata$d.lean,"Lean mass")
+summary_tab <-BLadj(alldata$BL.mg.kglean..min.80..gluc.corrected,alldata$d.mg.kglean..min.80..gluc.corrected,"Mg Kg lean 80 glucose corrected")
+summary_tab <-BLadj(alldata$BL.Glucose.corrected.M.I.80,alldata$d.Glucose.corrected.M.I,"Glucose corrected M/I 80")
+summary_tab <-BLadj(alldata$BL.mg.kg.min.80..gluc.corrected,alldata$d.mg.kg.min.80..gluc.corrected,"Mg kg min 80 glucose corrected")
+summary_tab <-BLadj(alldata$BL.Creatinine,alldata$d.creatinine,"Creatinine")
+summary_tab <-BLadj(alldata$BL.Creat.Ur.mg_dL,alldata$d.creat.Ur.mg_dl,"Creatinine Ur mg/dL")
+summary_tab <-BLadj(alldata$BL.Zap,alldata$d.Zap,"eGFR by Zap")
+summary_tab <-BLadj(alldata$BL.fas,alldata$d.fas,"eGFR by FAS")
+summary_tab <-BLadj(alldata$BL.fas,alldata$d.fas_cr,"eGFR by FAS-Cr")
 
-# changes in renal markers - adjust for insulin sensitivity, BMI 
+# changes in renal markers - adjust for insulin sensitivity, BMI, SBP
 summary_tab_adj <- NULL
-BLadj2 <- function(BLVar,FLVar,label){
-  a <- lm(data=alldata, FLVar ~ Randomization + BLVar + Sex + BMI + BL.Glucose.corrected.M.I.Lean.80 + SBP.1800 )
+BLadj2 <- function(BLVar,dVar,label){
+  a <- lm(data=alldata, dVar ~ Randomization + BLVar + BMI + BL.Glucose.corrected.M.I.Lean.80 + SBP.1800 )
   amod <- mod_tab(a)
   amod <- amod[amod$Predictor=="Randomization",]
   amod$Outcome <- label
@@ -223,64 +224,38 @@ BLadj2 <- function(BLVar,FLVar,label){
   summary_tab_adj <- rbind(summary_tab_adj,amod)
   return(summary_tab_adj)
 }
-summary_tab_adj <- BLadj2(alldata$BL.AST,alldata$FL.AST,"AST")
-summary_tab_adj <- BLadj2(alldata$BLALT,alldata$FL.ALT,"ALT")
-summary_tab_adj <-BLadj2(alldata$BL.Platelet.Count,alldata$FL.Platelet.Count.Final,"Platelets")
-summary_tab_adj <-BLadj2(alldata$BL.hs_CRP,alldata$FL.hs_CRP.Final,"CRP")
-summary_tab_adj <-BLadj2(alldata$BL.mcg.MAB_mgCRE,alldata$FL.mcg.MAB_mgCRE.Final,"MAB:CRE")
-summary_tab_adj <-BLadj2(alldata$BL.MAB.ur.mcg_mL,alldata$FL.MAB.ur.mcg_mL.Final,"MAB")
-summary_tab_adj <-BLadj2(alldata$BL.Adiponectin.baseline,alldata$FL.Adiponectin.Final,"Adiponectin")
-summary_tab_adj <-BLadj2(alldata$BL.BMC,alldata$FL.BMC,"BMC")
-summary_tab_adj <-BLadj2(alldata$BL.Leptin,alldata$FL.Leptin.Final,"Leptin")
-summary_tab_adj <-BLadj2(alldata$BL.BMD,alldata$FL.BMD,"BMD")
-summary_tab_adj <-BLadj2(alldata$BL.Copeptin,alldata$FL.Copeptin,"Copeptin")
-summary_tab_adj <-BLadj2(alldata$BL.VO2.lean.kg,alldata$FL.VO2.lean.kg,"VO2 max/lean kg")
-summary_tab_adj <-BLadj2(alldata$BL.VO2.Max.mL.kg.min.,alldata$FL.VO2.Max.mL.kg.min.,"VO2 max")
-summary_tab_adj <-BLadj2(alldata$BL.Cystatin,alldata$FL.Cystatin.Final,"Cystatin")
-summary_tab_adj <-BLadj2(alldata$BL.WBC,alldata$FL.WBC.Final,"WBC")
-summary_tab_adj <-BLadj2(alldata$BL.Creatinine,alldata$FL.Creatinine.Final,"Creatinine")
-summary_tab_adj <-BLadj2(alldata$BL.Creat.Ur.mg_dL,alldata$FL.Creat.Ur.mg_dL.Final,"Creatinine Ur mg/dL")
-summary_tab_adj <-BLadj2(alldata$BL.Zap,alldata$FL.Zap,"eGFR by Zap")
-summary_tab_adj <-BLadj2(alldata$BL.fas,alldata$FL.fas,"eGFR by FAS")
-summary_tab_adj <-BLadj2(alldata$BL.fas,alldata$FL.fas_cr,"eGFR by FAS-Cr")
-
-# trying change in GIR instead of baseline
-summary_tab_adja <- NULL
-BLadj2a <- function(BLVar,FLVar,label){
-  a <- lm(data=alldata, FLVar ~ Randomization + BLVar + Sex + BMI + d.Glucose.corrected.M.I.Lean.80 + SBP.1800 )
-  amod <- mod_tab(a)
-  amod <- amod[amod$Predictor=="Randomization",]
-  amod$Outcome <- label
-  amod <- as.data.frame(amod)
-  amod <- amod[,c(4,1,2,3)]
-  summary_tab_adja <- rbind(summary_tab_adja,amod)
-  return(summary_tab_adja)
-}
-summary_tab_adja <- BLadj2a(alldata$BL.AST,alldata$FL.AST,"AST")
-summary_tab_adja <- BLadj2a(alldata$BLALT,alldata$FL.ALT,"ALT")
-summary_tab_adja <-BLadj2a(alldata$BL.Platelet.Count,alldata$FL.Platelet.Count.Final,"Platelets")
-summary_tab_adja <-BLadj2a(alldata$BL.hs_CRP,alldata$FL.hs_CRP.Final,"CRP")
-summary_tab_adja <-BLadj2a(alldata$BL.mcg.MAB_mgCRE,alldata$FL.mcg.MAB_mgCRE.Final,"MAB:CRE")
-summary_tab_adja <-BLadj2a(alldata$BL.MAB.ur.mcg_mL,alldata$FL.MAB.ur.mcg_mL.Final,"MAB")
-summary_tab_adja <-BLadj2a(alldata$BL.Adiponectin.baseline,alldata$FL.Adiponectin.Final,"Adiponectin")
-summary_tab_adja <-BLadj2a(alldata$BL.BMC,alldata$FL.BMC,"BMC")
-summary_tab_adja <-BLadj2a(alldata$BL.Leptin,alldata$FL.Leptin.Final,"Leptin")
-summary_tab_adja <-BLadj2a(alldata$BL.BMD,alldata$FL.BMD,"BMD")
-summary_tab_adja <-BLadj2a(alldata$BL.Copeptin,alldata$FL.Copeptin,"Copeptin")
-summary_tab_adja <-BLadj2a(alldata$BL.VO2.lean.kg,alldata$FL.VO2.lean.kg,"VO2 max/lean kg")
-summary_tab_adja <-BLadj2a(alldata$BL.VO2.Max.mL.kg.min.,alldata$FL.VO2.Max.mL.kg.min.,"VO2 max")
-summary_tab_adja <-BLadj2a(alldata$BL.Cystatin,alldata$FL.Cystatin.Final,"Cystatin")
-summary_tab_adja <-BLadj2a(alldata$BL.WBC,alldata$FL.WBC.Final,"WBC")
-summary_tab_adja <-BLadj2a(alldata$BL.Creatinine,alldata$FL.Creatinine.Final,"Creatinine")
-summary_tab_adja <-BLadj2a(alldata$BL.Creat.Ur.mg_dL,alldata$FL.Creat.Ur.mg_dL.Final,"Creatinine Ur mg/dL")
-summary_tab_adja <-BLadj2a(alldata$BL.Zap,alldata$FL.Zap,"eGFR by Zap")
-summary_tab_adja <-BLadj2a(alldata$BL.fas,alldata$FL.fas,"eGFR by FAS")
-summary_tab_adja <-BLadj2a(alldata$BL.fas,alldata$FL.fas_cr,"eGFR by FAS-Cr")
+summary_tab_adj <- BLadj2(alldata$BL.AST,alldata$d.AST,"AST")
+summary_tab_adj <- BLadj2(alldata$BLALT,alldata$d.ALT,"ALT")
+summary_tab_adj <-BLadj2(alldata$BL.Platelet.Count,alldata$d.Plat,"Platelets")
+summary_tab_adj <-BLadj2(alldata$BL.hs_CRP,alldata$d.CRP,"CRP")
+summary_tab_adj <-BLadj2(alldata$BL.mcg.MAB_mgCRE,alldata$d.MAB_CRE,"MAB:CRE")
+summary_tab_adj <-BLadj2(alldata$BL.MAB.ur.mcg_mL,alldata$d.MAB,"MAB")
+summary_tab_adj <-BLadj2(alldata$BL.Adiponectin.baseline,alldata$d.adipo,"Adiponectin")
+summary_tab_adj <-BLadj2(alldata$BL.BMC,alldata$d.BMC,"BMC")
+summary_tab_adj <-BLadj2(alldata$BL.Leptin,alldata$d.lept,"Leptin")
+summary_tab_adj <-BLadj2(alldata$BL.Lean_per,alldata$d.lean_per,"Lean %")
+summary_tab_adj <-BLadj2(alldata$BL.BMD,alldata$d.BMD,"BMD")
+summary_tab_adj <-BLadj2(alldata$BL.Copeptin,alldata$d.copeptin,"Copeptin")
+summary_tab_adj <-BLadj2(alldata$BL.VO2.lean.kg,alldata$d.VO2lean,"VO2 max/lean kg")
+summary_tab_adj <-BLadj2(alldata$BL.VO2.Max.mL.kg.min.,alldata$d.VO2,"VO2 max")
+summary_tab_adj <-BLadj2(alldata$BL.Fat_per,alldata$d.fat_per,"% Fat")
+summary_tab_adj <-BLadj2(alldata$BL.Cystatin,alldata$d.cystatin,"Cystatin")
+summary_tab_adj <-BLadj2(alldata$BL.WBC,alldata$d.wbc,"WBC")
+summary_tab_adj <-BLadj2(alldata$BL.Fat_Mass,alldata$d.fat,"Fat mass")
+summary_tab_adj <-BLadj2(alldata$BL.Lean_Mass,alldata$d.lean,"Lean mass")
+summary_tab_adj <-BLadj2(alldata$BL.mg.kglean..min.80..gluc.corrected,alldata$d.mg.kglean..min.80..gluc.corrected,"Mg Kg lean 80 glucose corrected")
+summary_tab_adj <-BLadj2(alldata$BL.Glucose.corrected.M.I.80,alldata$d.Glucose.corrected.M.I,"Glucose corrected M/I 80")
+summary_tab_adj <-BLadj2(alldata$BL.mg.kg.min.80..gluc.corrected,alldata$d.mg.kg.min.80..gluc.corrected,"Mg kg min 80 glucose corrected")
+summary_tab_adj <-BLadj2(alldata$BL.Creatinine,alldata$d.creatinine,"Creatinine")
+summary_tab_adj <-BLadj2(alldata$BL.Creat.Ur.mg_dL,alldata$d.creat.Ur.mg_dl,"Creatinine Ur mg/dL")
+summary_tab_adj <-BLadj2(alldata$BL.Zap,alldata$d.Zap,"eGFR by Zap")
+summary_tab_adj <-BLadj2(alldata$BL.fas,alldata$d.fas,"eGFR by FAS")
+summary_tab_adj <-BLadj2(alldata$BL.fas,alldata$d.fas_cr,"eGFR by FAS-Cr")
 
 # now add adjustment for age since groups were different
 summary_tab_adj2 <- NULL
-BLadj3 <- function(BLVar,FLVar,label){
-  a <- lm(data=alldata, FLVar ~ Randomization + BLVar + BMI + BL.Glucose.corrected.M.I.Lean.80 + SBP.1800 + age)
+BLadj3 <- function(BLVar,dVar,label){
+  a <- lm(data=alldata, dVar ~ Randomization + BLVar + BMI + BL.Glucose.corrected.M.I.Lean.80 + SBP.1800 + age)
   amod <- mod_tab(a)
   amod <- amod[amod$Predictor=="Randomization",]
   amod$Outcome <- label
@@ -289,26 +264,33 @@ BLadj3 <- function(BLVar,FLVar,label){
   summary_tab_adj2 <- rbind(summary_tab_adj2,amod)
   return(summary_tab_adj2)
 }
-summary_tab_adj2 <- BLadj3(alldata$BL.AST,alldata$FL.AST,"AST")
-summary_tab_adj2 <- BLadj3(alldata$BLALT,alldata$FL.ALT,"ALT")
-summary_tab_adj2 <-BLadj3(alldata$BL.Platelet.Count,alldata$FL.Platelet.Count.Final,"Platelets")
-summary_tab_adj2 <-BLadj3(alldata$BL.hs_CRP,alldata$FL.hs_CRP.Final,"CRP")
-summary_tab_adj2 <-BLadj3(alldata$BL.mcg.MAB_mgCRE,alldata$FL.mcg.MAB_mgCRE.Final,"MAB:CRE")
-summary_tab_adj2 <-BLadj3(alldata$BL.MAB.ur.mcg_mL,alldata$FL.MAB.ur.mcg_mL.Final,"MAB")
-summary_tab_adj2 <-BLadj3(alldata$BL.Adiponectin.baseline,alldata$FL.Adiponectin.Final,"Adiponectin")
-summary_tab_adj2 <-BLadj3(alldata$BL.BMC,alldata$FL.BMC,"BMC")
-summary_tab_adj2 <-BLadj3(alldata$BL.Leptin,alldata$FL.Leptin.Final,"Leptin")
-summary_tab_adj2 <-BLadj3(alldata$BL.BMD,alldata$FL.BMD,"BMD")
-summary_tab_adj2 <-BLadj3(alldata$BL.Copeptin,alldata$FL.Copeptin,"Copeptin")
-summary_tab_adj2 <-BLadj3(alldata$BL.VO2.lean.kg,alldata$FL.VO2.lean.kg,"VO2 max/lean kg")
-summary_tab_adj2 <-BLadj3(alldata$BL.VO2.Max.mL.kg.min.,alldata$FL.VO2.Max.mL.kg.min.,"VO2 max")
-summary_tab_adj2 <-BLadj3(alldata$BL.Cystatin,alldata$FL.Cystatin.Final,"Cystatin")
-summary_tab_adj2 <-BLadj3(alldata$BL.WBC,alldata$FL.WBC.Final,"WBC")
-summary_tab_adj2 <-BLadj3(alldata$BL.Creatinine,alldata$FL.Creatinine.Final,"Creatinine")
-summary_tab_adj2 <-BLadj3(alldata$BL.Creat.Ur.mg_dL,alldata$FL.Creat.Ur.mg_dL.Final,"Creatinine Ur mg/dL")
-summary_tab_adj2 <-BLadj3(alldata$BL.Zap,alldata$FL.Zap,"eGFR by Zap")
-summary_tab_adj2 <-BLadj3(alldata$BL.fas,alldata$FL.fas,"eGFR by FAS")
-summary_tab_adj2 <-BLadj3(alldata$BL.fas,alldata$FL.fas_cr,"eGFR by FAS-Cr")
+summary_tab_adj2 <- BLadj3(alldata$BL.AST,alldata$d.AST,"AST")
+summary_tab_adj2 <- BLadj3(alldata$BLALT,alldata$d.ALT,"ALT")
+summary_tab_adj2 <-BLadj3(alldata$BL.Platelet.Count,alldata$d.Plat,"Platelets")
+summary_tab_adj2 <-BLadj3(alldata$BL.hs_CRP,alldata$d.CRP,"CRP")
+summary_tab_adj2 <-BLadj3(alldata$BL.mcg.MAB_mgCRE,alldata$d.MAB_CRE,"MAB:CRE")
+summary_tab_adj2 <-BLadj3(alldata$BL.MAB.ur.mcg_mL,alldata$d.MAB,"MAB")
+summary_tab_adj2 <-BLadj3(alldata$BL.Adiponectin.baseline,alldata$d.adipo,"Adiponectin")
+summary_tab_adj2 <-BLadj3(alldata$BL.BMC,alldata$d.BMC,"BMC")
+summary_tab_adj2 <-BLadj3(alldata$BL.Leptin,alldata$d.lept,"Leptin")
+summary_tab_adj2 <-BLadj3(alldata$BL.Lean_per,alldata$d.lean_per,"Lean %")
+summary_tab_adj2 <-BLadj3(alldata$BL.BMD,alldata$d.BMD,"BMD")
+summary_tab_adj2 <-BLadj3(alldata$BL.Copeptin,alldata$d.copeptin,"Copeptin")
+summary_tab_adj2 <-BLadj3(alldata$BL.VO2.lean.kg,alldata$d.VO2lean,"VO2 max/lean kg")
+summary_tab_adj2 <-BLadj3(alldata$BL.VO2.Max.mL.kg.min.,alldata$d.VO2,"VO2 max")
+summary_tab_adj2 <-BLadj3(alldata$BL.Fat_per,alldata$d.fat_per,"% Fat")
+summary_tab_adj2 <-BLadj3(alldata$BL.Cystatin,alldata$d.cystatin,"Cystatin")
+summary_tab_adj2 <-BLadj3(alldata$BL.WBC,alldata$d.wbc,"WBC")
+summary_tab_adj2 <-BLadj3(alldata$BL.Fat_Mass,alldata$d.fat,"Fat mass")
+summary_tab_adj2 <-BLadj3(alldata$BL.Lean_Mass,alldata$d.lean,"Lean mass")
+summary_tab_adj2 <-BLadj3(alldata$BL.mg.kglean..min.80..gluc.corrected,alldata$d.mg.kglean..min.80..gluc.corrected,"Mg Kg lean 80 glucose corrected")
+summary_tab_adj2 <-BLadj3(alldata$BL.Glucose.corrected.M.I.80,alldata$d.Glucose.corrected.M.I,"Glucose corrected M/I 80")
+summary_tab_adj2 <-BLadj3(alldata$BL.mg.kg.min.80..gluc.corrected,alldata$d.mg.kg.min.80..gluc.corrected,"Mg kg min 80 glucose corrected")
+summary_tab_adj2 <-BLadj3(alldata$BL.Creatinine,alldata$d.creatinine,"Creatinine")
+summary_tab_adj2 <-BLadj3(alldata$BL.Creat.Ur.mg_dL,alldata$d.creat.Ur.mg_dl,"Creatinine Ur mg/dL")
+summary_tab_adj2 <-BLadj3(alldata$BL.Zap,alldata$d.Zap,"eGFR by Zap")
+summary_tab_adj2 <-BLadj3(alldata$BL.fas,alldata$d.fas,"eGFR by FAS")
+summary_tab_adj2 <-BLadj3(alldata$BL.fas,alldata$d.fas_cr,"eGFR by FAS-Cr")
 
 # correlation of insulin sensitivity to renal function at baseline
 # ++++++++++++++++++++++++++++
@@ -348,7 +330,7 @@ The purpose of this analysis is to examine changes in renal markers as well as e
 
 Estimated glomerular filtration rate (eGFR) was calculated using the Zappatelli and FAS equations.  Hyperfiltration was defined as eGFR by Zappatelli >= 126.8.
 
-The distributions of all variables were examined prior to analysis.  Baseline characteristics were compared between the groups using t-tests or the Mann-Whitney test for continuous variables, and the chi-square or Fisher's exact test for categorical variables.  Changes in study outcomes were calculated as the value at follow-up minus the value at baseline, and changes were compared between the groups using t-tests or Mann-Whitney tests.  Differences in hyperfiltration status at baseline and follow-up were compared using McNemar's test.  Pearson's correlation coefficient was used to examine the association of insulin sensitivity with renal markers at baseline.
+The distributions of all variables were examined prior to analysis.  Baseline characteristics were compared between the groups using t-tests or the Mann-Whitney test for continuous variables, and the chi-square or Fisher's exact test for categorical variables.  Changes in study outcomes were calculated as the value at follow-up minus the value at baseline, and changes were compared between the groups using t-tests or Mann-Whitney tests.  Differences in hyperfiltration status at baseline and follow-up were compared using McNemar's test.  Pearson's correlation coefficient was used to examine the association of insulin sensitivity with renal markers at baseline.  Linear models were used to compare differences in the change in outcomes while adjusting for baseline values and other covariates.
 
 # Results
 
@@ -381,23 +363,17 @@ kable(corr_ins,caption="Table 3.  Correlations between insulin sensitivity and r
 ```
 \
 
-Table 4 shows comparisons of follow-up outcomes adjusted for baseline values.
+Table 4 shows comparisons of changes in outcomes adjusted for baseline values.
 
 ```{r, results='asis',tidy=TRUE, echo=FALSE}
-kable(summary_tab,caption="Table 4.  Group differences (metformin-placebo) in follow-up outcomes adjusted for baseline values.")
+kable(summary_tab,caption="Table 4.  Group differences (metformin-placebo) in the change in outcomes adjusted for baseline values.")
 ```
 \
 
-Table 5 shows comparisons of follow-up outcomes adjusted for the baseline value of the outcome, plus BMI, SBP, and glucose corrected M/I Lean 80.
+Table 5 shows comparisons of changes in outcomes adjusted for the baseline value of the outcome, plus BMI, SBP, and glucose corrected M/I Lean 80.
 
 ```{r, results='asis',tidy=TRUE, echo=FALSE}
-kable(summary_tab_adj,caption="Table 5.  Group differences (metformin-placebo) in follow-up outcomes adjusted for baseline values, BMI, SBP, and glucose corrected M/I Lean 80.")
+kable(summary_tab_adj,caption="Table 5.  Group differences (metformin-placebo) in the change in outcomes adjusted for baseline values, BMI, SBP, and glucose corrected M/I Lean 80.")
 ```
 \
 
-Table 6 shows comparisons of follow-up outcomes adjusted for the baseline value of the outcome, plus BMI, SBP, glucose corrected M/I Lean 80, and age at baseline.
-
-```{r, results='asis',tidy=TRUE, echo=FALSE}
-kable(summary_tab_adj2,caption="Table 6.  Group differences (metformin-placebo) in follow-up outcomes adjusted for baseline values, BMI, SBP, glucose corrected M/I Lean 80, and age.")
-```
-\
