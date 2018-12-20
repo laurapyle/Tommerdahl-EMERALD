@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 library(Hmisc)
 library(knitr)
+library(emmeans)
 
 source("C:\\Users\\pylell\\Documents\\GitHub\\General-code\\temp_table1.r")
 source("C:\\Users\\pylell\\Documents\\GitHub\\General-code\\01_functions.r")
@@ -210,7 +211,7 @@ summary_tab <-BLadj(alldata$BL.Creatinine,alldata$d.creatinine,"Creatinine")
 summary_tab <-BLadj(alldata$BL.Creat.Ur.mg_dL,alldata$d.creat.Ur.mg_dl,"Creatinine Ur mg/dL")
 summary_tab <-BLadj(alldata$BL.Zap,alldata$d.Zap,"eGFR by Zap")
 summary_tab <-BLadj(alldata$BL.fas,alldata$d.fas,"eGFR by FAS")
-summary_tab <-BLadj(alldata$BL.fas,alldata$d.fas_cr,"eGFR by FAS-Cr")
+summary_tab <-BLadj(alldata$BL.fas_cr,alldata$d.fas_cr,"eGFR by FAS-Cr")
 
 # changes in renal markers - adjust for insulin sensitivity, BMI, SBP
 summary_tab_adj <- NULL
@@ -250,7 +251,10 @@ summary_tab_adj <-BLadj2(alldata$BL.Creatinine,alldata$d.creatinine,"Creatinine"
 summary_tab_adj <-BLadj2(alldata$BL.Creat.Ur.mg_dL,alldata$d.creat.Ur.mg_dl,"Creatinine Ur mg/dL")
 summary_tab_adj <-BLadj2(alldata$BL.Zap,alldata$d.Zap,"eGFR by Zap")
 summary_tab_adj <-BLadj2(alldata$BL.fas,alldata$d.fas,"eGFR by FAS")
-summary_tab_adj <-BLadj2(alldata$BL.fas,alldata$d.fas_cr,"eGFR by FAS-Cr")
+summary_tab_adj <-BLadj2(alldata$BL.fas_cr,alldata$d.fas_cr,"eGFR by FAS-Cr")
+
+test <- lm(data=alldata, d.fas_cr ~ as.factor(Randomization) + BL.fas_cr )
+
 
 # now add adjustment for age since groups were different
 summary_tab_adj2 <- NULL
