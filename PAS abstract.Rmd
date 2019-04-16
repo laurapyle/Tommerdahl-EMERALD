@@ -155,6 +155,9 @@ label(alldata$tanner)="Tanner stage"
 label(alldata$BL.hyperfilt)="Baseline Hyperfiltration"
 label(alldata$FL.hyperfilt)="Followup Hyperfiltration"
 
+# write data for Kalie
+write.csv(alldata,"H:\\Endocrinology\\Tommerdahl\\export.csv")
+
 # Table 1
 tab1 <- final_table(alldata,c("Sex","Age.at.screen","Diabetes.Duration","BMI","BMI.Percentile","Waist.Circumference..cm.","Waist.to.Hip.Ratio",
                               "SBP.1800","DBP.1800","Ethnicity.factor","tanner"),group=as.factor(alldata$Randomization),margin=2,single=0,ron=2)
