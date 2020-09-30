@@ -219,6 +219,9 @@ label(alldata$d.fas_cysc)="Change in FAS (cystatin-C)"
 no_fup <- alldata[is.na(alldata$FL.Visit.Date),]
 write.csv(no_fup,"E:\\Tommerdahl\\EMERALD analysis\\no_followup.csv")
 
+# write data for Kalie
+write.csv(alldata,"H:\\Endocrinology\\Tommerdahl\\export.csv")
+
 # Table 1
 tab1 <- final_table(alldata,c("Sex","Age.at.screen","Diabetes.Duration","BMI","BMI.Percentile","Waist.Circumference..cm.","Waist.to.Hip.Ratio",
                               "SBP.1800","DBP.1800","Ethnicity.factor","tanner","BL.Creatinine","qcr","BL.fas","BL.fas_cr","BL.Zap",
