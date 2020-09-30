@@ -8,15 +8,26 @@ output: word_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
+options(scipen=999)
+
 library(Hmisc)
 library(knitr)
 library(emmeans)
+library(gee)
 
 source("C:\\Users\\pylell\\Documents\\GitHub\\General-code\\temp_table1.r")
 source("C:\\Users\\pylell\\Documents\\GitHub\\General-code\\01_functions.r")
 
-alldata <- read.csv("H:\\Endocrinology\\Tommerdahl\\EMERALD analysis\\EMERALD updated renal effects spreadsheet.csv",na.strings=c(" ","","."))
+alldata <- read.csv("E:\\Tommerdahl\\EMERALD analysis\\EMERALD updated renal effects spreadsheet.csv",na.strings=c(" ","","."))
 alldata <- alldata[!is.na(alldata$Subject.ID),]
+
+# read in follow-up date and date of birth
+dates <- read.csv("E:\\Tommerdahl\\EMERALD analysis\\EMERALD Kidney manuscript baseline and follow up dates.csv",na.strings=c(" ","","."))
+dates$BL.Visit.Date <- NULL
+alldata <- merge(alldata,dates,by="Subject.ID")
+alldata$Date.of.Birth <- as.Date(as.character(alldata$Date.of.Birth),format="%m/%d/%Y")
+alldata$FL.Visit.Date <- as.Date(as.character(alldata$FL.Visit.Date),format="%m/%d/%Y")
+alldata$age_fup <- floor(as.numeric((alldata$FL.Visit.Date - alldata$Date.of.Birth))/365.25)
 
 # calculate eGFR by Zapatelli
 alldata$BL.Zap <- (507.76*exp(0.003*(alldata$Screen.Height)))/((alldata$BL.Cystatin^0.635)*((alldata$BL.Creatinine*88.4)^0.547))
@@ -63,15 +74,53 @@ alldata$f2FL <- 1-0.5
 alldata$f3FL <- alldata$FL.Creatinine/0.82
 alldata$FL.fas <- 107.3 / ((0.5*alldata$f1FL) + (alldata$f2FL*alldata$f3FL))
 
+# Qcr at followup
+alldata$qcr_fup[alldata$age_fup==10] <- 0.51 
+alldata$qcr_fup[alldata$age_fup==11] <- 0.53 
+alldata$qcr_fup[alldata$age_fup==12] <- 0.57
+alldata$qcr_fup[alldata$age_fup==13] <- 0.59
+alldata$qcr_fup[alldata$age_fup==14] <- 0.61
+# in EMERALD, 0=male, 1=female
+# females
+alldata$qcr_fup[alldata$age_fup==15 & alldata$Sex==1] <- 0.64
+# males
+alldata$qcr_fup[alldata$age_fup==15 & alldata$Sex==0] <- 0.72
+# females
+alldata$qcr_fup[alldata$age_fup==16 & alldata$Sex==1] <- 0.67
+# males
+alldata$qcr_fup[alldata$age_fup==16 & alldata$Sex==0] <- 0.78
+# females
+alldata$qcr_fup[alldata$age_fup==17 & alldata$Sex==1] <- 0.69
+# males
+alldata$qcr_fup[alldata$age_fup==17 & alldata$Sex==0] <- 0.82
+# females
+alldata$qcr_fup[alldata$age_fup==18 & alldata$Sex==1] <- 0.69
+# males
+alldata$qcr_fup[alldata$age_fup==18 & alldata$Sex==0] <- 0.85
+# females
+alldata$qcr_fup[alldata$age_fup==19 & alldata$Sex==1] <- 0.70
+# males
+alldata$qcr_fup[alldata$age_fup==19 & alldata$Sex==0] <- 0.88
+# females
+alldata$qcr_fup[alldata$age_fup>=20 & alldata$Sex==1] <- 0.70
+# males
+alldata$qcr_fup[alldata$age_fup>=20 & alldata$Sex==0] <- 0.90
+
 # hyperfiltration - defined as Zapp >= 126.8
 alldata$BL.hyperfilt[alldata$BL.Zap>=126.8] <- 1
 alldata$BL.hyperfilt[alldata$BL.Zap<126.8] <- 0
 alldata$FL.hyperfilt[alldata$FL.Zap>=126.8] <- 1
 alldata$FL.hyperfilt[alldata$FL.Zap<126.8] <- 0
+alldata$BL.hyperfilt <- as.factor(alldata$BL.hyperfilt)
+alldata$FL.hyperfilt <- as.factor(alldata$FL.hyperfilt)
 
 # calculate FAS by serum creatinine
 alldata$BL.fas_cr <-107.3/(alldata$BL.Creatinine/alldata$qcr)
 alldata$FL.fas_cr <-107.3/(alldata$FL.Creatinine/alldata$qcr)
+
+# calculate FAS using cystatin C only
+alldata$BL.fas_cysc <- 107.3/(alldata$BL.Cystatin/0.82)
+alldata$FL.fas_cysc <- 107.3/(alldata$FL.Cystatin/0.82)
 
 # calculate deltas
 alldata$d.AST <- alldata$FL.AST - alldata$BL.AST
@@ -102,6 +151,8 @@ alldata$d.creat.Ur.mg_dl <- alldata$FL.Creat.Ur.mg_dL.Final - alldata$BL.Creat.U
 alldata$d.Zap <- alldata$FL.Zap - alldata$BL.Zap
 alldata$d.fas <- alldata$FL.fas - alldata$BL.fas
 alldata$d.fas_cr <- alldata$FL.fas_cr - alldata$BL.fas_cr
+alldata$d.qcr <- alldata$qcr_fup - alldata$qcr
+alldata$d.fas_cysc <- alldata$FL.fas_cysc - alldata$BL.fas_cysc
  
 # determine Tanner stage
 alldata$tanner <- as.factor(ifelse(alldata$Sex==1,alldata$Breasts...Tanner,alldata$Tanner...Testes))
@@ -154,22 +205,55 @@ label(alldata$Ethnicity.factor)="Ethnicity"
 label(alldata$tanner)="Tanner stage"
 label(alldata$BL.hyperfilt)="Baseline Hyperfiltration"
 label(alldata$FL.hyperfilt)="Followup Hyperfiltration"
+label(alldata$BL.Creatinine)="Baseline creatinine"
+label(alldata$qcr)="Baseline Qcr"
+label(alldata$d.qcr)="Change in Qcr"
+label(alldata$BL.fas)="Baseline FAS"
+label(alldata$BL.fas_cr)="Baseline FAS (creatinine)"
+label(alldata$BL.Zap)="Baseline Zapatelli"
+label(alldata$BL.fas_cysc)="Baseline FAS (cystatin-C)"
+label(alldata$FL.fas_cysc)="Followup FAS (cystatin-C)"
+label(alldata$d.fas_cysc)="Change in FAS (cystatin-C)"
+
+# checking patients with missing FU visit
+no_fup <- alldata[is.na(alldata$FL.Visit.Date),]
+write.csv(no_fup,"E:\\Tommerdahl\\EMERALD analysis\\no_followup.csv")
 
 # Table 1
 tab1 <- final_table(alldata,c("Sex","Age.at.screen","Diabetes.Duration","BMI","BMI.Percentile","Waist.Circumference..cm.","Waist.to.Hip.Ratio",
-                              "SBP.1800","DBP.1800","Ethnicity.factor","tanner"),group=as.factor(alldata$Randomization),margin=2,single=0,ron=2)
+                              "SBP.1800","DBP.1800","Ethnicity.factor","tanner","BL.Creatinine","qcr","BL.fas","BL.fas_cr","BL.Zap",
+                              "BL.fas_cysc","BL.hyperfilt"),
+                    group=as.factor(alldata$Randomization),margin=2,single=0,ron=2)
 
 # table of changes in all variables
 tab2 <- final_table(alldata,c('d.AST',"d.ALT","d.Plat","d.CRP","d.MAB_CRE","d.MAB","d.adipo","d.BMC","d.lept","d.lean_per","d.BMD","d.copeptin","d.VO2lean",
                               "d.VO2","d.Glucose.corrected.M.I.Lean.80","d.fat_per","d.cystatin","d.wbc","d.fat","d.lean","d.mg.kglean..min.80..gluc.corrected",
-                              "d.Glucose.corrected.M.I","d.mg.kg.min.80..gluc.corrected","d.creatinine","d.creat.Ur.mg_dl","d.Zap","d.fas","d.fas_cr"),
+                              "d.Glucose.corrected.M.I","d.mg.kg.min.80..gluc.corrected","d.creatinine","d.creat.Ur.mg_dl","d.Zap","d.fas","d.fas_cr",
+                              "d.qcr","d.fas_cysc"),
                     group=as.factor(alldata$Randomization),margin=2,single=0,ron=2)
+
+# change in creatinine within each group
+dcrgroup0 <- round(t.test(alldata[alldata$Randomization==0,]$d.creatinine)$p.value,4)
+dcrgroup1 <- round(t.test(alldata[alldata$Randomization==1,]$d.creatinine)$p.value,4)
 
 # crosstab of hyperfiltration
 tab2b <- table(alldata$BL.hyperfilt,alldata$FL.hyperfilt)
 row.names(tab2b) <- c("Normofiltration baseline","Hyperfiltration baseline")
 colnames(tab2b) <- c("Normofiltration followup","Hyperfiltration followup")
 tab2bp <- mcnemar.test(tab2b)$p.value
+
+# make a dataframe for GEE of hyperfiltration
+v1 <- alldata[,c("Subject.ID","BL.hyperfilt","Randomization")]
+v2 <- alldata[,c("Subject.ID","FL.hyperfilt","Randomization")]
+v1$visit <- 1
+v1$hf <- v1$BL.hyperfilt
+v1$BL.hyperfilt <- NULL
+v2$visit <- 2
+v2$hf <- v2$FL.hyperfilt
+v2$FL.hyperfilt <- NULL
+hf <- rbind(v1,v2)
+
+#modgee <- gee(hf ~ visit*Randomization, data=hf, id=Subject.ID, family = binomial)
 
 # was post adjusted for pre
 # now going to do change adjusted for pre
@@ -341,23 +425,25 @@ The distributions of all variables were examined prior to analysis.  Baseline ch
 Table 1 shows baseline descriptive statistics by treatment group.
 
 ```{r, results='asis',tidy=TRUE, echo=FALSE}
-kable(tab1,caption="Table 1.  Descriptive statistics by treatment group.  Statistics given are N(%), mean±SD, or median (25th %ile, 75th %ile).  * denotes that the Mannn-Whitney test was used, and ** denotes that Fisher's exact test was used.")
+kable(tab1,caption="Table 1.  Descriptive statistics by treatment group.  Statistics given are N(%), mean?SD, or median (25th %ile, 75th %ile).  * denotes that the Mannn-Whitney test was used, and ** denotes that Fisher's exact test was used.")
 ```
-\
+\newpage
 
 Table 2a shows changes in study outcomes by treatment group.
 
 ```{r, results='asis',tidy=TRUE, echo=FALSE}
-kable(tab2,caption="Table 2a.  Changes in outcomes by treatment group.  Statistics given are N(%), mean±SD, or median (25th %ile, 75th %ile).  * denotes that the Mannn-Whitney test was used, and ** denotes that Fisher's exact test was used.")
+kable(tab2,caption="Table 2a.  Changes in outcomes by treatment group.  Statistics given are N(%), mean?SD, or median (25th %ile, 75th %ile).  * denotes that the Mannn-Whitney test was used, and ** denotes that Fisher's exact test was used.")
 ```
-\
+\newpage
 
-Table 2b shows changes in hyperfiltration status by treatment group (McNemar's test p=`r tab2bp`).
+P-value for the change in creatinine within group 0 is `r dcrgroup0`.  P-value for the change in creatinine within group 1 is `r dcrgroup1`.
+
+Table 2b shows changes in hyperfiltration status by treatment group (McNemar's test p=`r tab2bp`).  There were only 3 participants who changed hyperfiltration status during the study, and therefore a model comparing treatment groups would not converge.
 
 ```{r, results='asis',tidy=TRUE, echo=FALSE}
 kable(tab2b,caption="Table 2b.  Changes in hyperfiltration status by treatment group.")
 ```
-\
+\newpage
 
 Table 3 shows correlations between insulin sensitivity variables and renal markers at baseline.
 
@@ -365,19 +451,19 @@ Table 3 shows correlations between insulin sensitivity variables and renal marke
 ```{r, results='asis',tidy=TRUE, echo=FALSE}
 kable(corr_ins,caption="Table 3.  Correlations between insulin sensitivity and renal markers at baseline.")
 ```
-\
+\newpage
 
 Table 4 shows comparisons of changes in outcomes adjusted for baseline values.
 
 ```{r, results='asis',tidy=TRUE, echo=FALSE}
 kable(summary_tab,caption="Table 4.  Group differences (metformin-placebo) in the change in outcomes adjusted for baseline values.")
 ```
-\
+\newpage
 
 Table 5 shows comparisons of changes in outcomes adjusted for the baseline value of the outcome, plus BMI, SBP, and glucose corrected M/I Lean 80.
 
 ```{r, results='asis',tidy=TRUE, echo=FALSE}
 kable(summary_tab_adj,caption="Table 5.  Group differences (metformin-placebo) in the change in outcomes adjusted for baseline values, BMI, SBP, and glucose corrected M/I Lean 80.")
 ```
-\
+
 
