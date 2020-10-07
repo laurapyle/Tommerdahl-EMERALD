@@ -215,12 +215,16 @@ label(alldata$BL.fas_cysc)="Baseline FAS (cystatin-C)"
 label(alldata$FL.fas_cysc)="Followup FAS (cystatin-C)"
 label(alldata$d.fas_cysc)="Change in FAS (cystatin-C)"
 
+# exclude participant with missing follow up visit
+alldata <- alldata[!alldata$Subject.ID=="6377-38",]
+
 # checking patients with missing FU visit
 no_fup <- alldata[is.na(alldata$FL.Visit.Date),]
-write.csv(no_fup,"E:\\Tommerdahl\\EMERALD analysis\\no_followup.csv")
+
+#write.csv(no_fup,"E:\\Tommerdahl\\EMERALD analysis\\no_followup.csv")
 
 # write data for Kalie
-write.csv(alldata,"H:\\Endocrinology\\Tommerdahl\\export.csv")
+#(alldata,"H:\\Endocrinology\\Tommerdahl\\export.csv")
 
 # Table 1
 tab1 <- final_table(alldata,c("Sex","Age.at.screen","Diabetes.Duration","BMI","BMI.Percentile","Waist.Circumference..cm.","Waist.to.Hip.Ratio",
@@ -418,6 +422,8 @@ corr_ins <- corr_ins[corr_ins$column=="BL.Cystatin" | corr_ins$column=="BL.Creat
 The purpose of this analysis is to examine changes in renal markers as well as exercise testing and body composition outcomes in the EMERALD study.
 
 # Methods
+
+In this report, participant 6377-38 was excluded due to missing follow up visit.
 
 Estimated glomerular filtration rate (eGFR) was calculated using the Zappatelli and FAS equations.  Hyperfiltration was defined as eGFR by Zappatelli >= 126.8.
 
